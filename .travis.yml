@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+before_install:
+  - docker build -t rselva/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true rselva/react-test npm run test -- --coverage
+
+after_scuccess:
+  - docker build -t rselva/multi-client ./client
+  - docker build -t rselva/multi-server ./server
+  - docker build -t rselva/multi-worker ./worker
+  - docker build -t rselva/multi-nginx ./nginx
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push rselva/multi-client
+  - docker push rselva/multi-server
+  - docker push rselva/multi-worker
+  - docker push rselva/multi-nginx
+  
